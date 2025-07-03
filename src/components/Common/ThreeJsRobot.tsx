@@ -15,64 +15,64 @@ const ThreeJsRobot: React.FC<ThreeJsRobotProps> = ({ onRobotClick }) => {
 
     // Scene setup
     const scene = new THREE.Scene();
-    const camera = new THREE.PerspectiveCamera(75, 240 / 240, 0.1, 1000);
+    const camera = new THREE.PerspectiveCamera(75, 280 / 280, 0.1, 1000);
     const renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
     
-    renderer.setSize(240, 240);
+    renderer.setSize(280, 280);
     renderer.setClearColor(0x000000, 0);
     renderer.shadowMap.enabled = true;
     renderer.shadowMap.type = THREE.PCFSoftShadowMap;
     mountRef.current.appendChild(renderer.domElement);
 
-    // Enhanced lighting with Star Wars theme
+    // Enhanced lighting with cosmic theme
     const ambientLight = new THREE.AmbientLight(0x404040, 0.4);
     scene.add(ambientLight);
 
-    const directionalLight = new THREE.DirectionalLight(0x4338ca, 1.2);
+    const directionalLight = new THREE.DirectionalLight(0x8b5cf6, 1.2);
     directionalLight.position.set(5, 5, 5);
     directionalLight.castShadow = true;
     scene.add(directionalLight);
 
-    const blueLight = new THREE.PointLight(0x4338ca, 0.8, 15);
+    const blueLight = new THREE.PointLight(0x8b5cf6, 0.8, 15);
     blueLight.position.set(-3, 3, 3);
     scene.add(blueLight);
 
-    const redLight = new THREE.PointLight(0xdc2626, 0.6, 12);
-    redLight.position.set(2, 2, -2);
-    scene.add(redLight);
-
-    const greenLight = new THREE.PointLight(0x10b981, 0.4, 10);
-    greenLight.position.set(0, -2, 4);
+    const greenLight = new THREE.PointLight(0x22c55e, 0.6, 12);
+    greenLight.position.set(2, 2, -2);
     scene.add(greenLight);
+
+    const yellowLight = new THREE.PointLight(0xf59e0b, 0.4, 10);
+    yellowLight.position.set(0, -2, 4);
+    scene.add(yellowLight);
 
     // Create enhanced R2-D2 style robot
     const robotGroup = new THREE.Group();
     robotRef.current = robotGroup;
 
-    // Enhanced materials with Star Wars theme
+    // Enhanced materials with cosmic theme
     const bodyMaterial = new THREE.MeshPhongMaterial({ 
       color: 0xf0f0f0,
       shininess: 120,
       reflectivity: 0.3
     });
     
-    const blueMaterial = new THREE.MeshPhongMaterial({ 
-      color: 0x4338ca,
+    const cosmicMaterial = new THREE.MeshPhongMaterial({ 
+      color: 0x8b5cf6,
       shininess: 100,
-      emissive: 0x111144
+      emissive: 0x2d1b69
     });
     
-    const redMaterial = new THREE.MeshPhongMaterial({ 
-      color: 0xdc2626,
+    const greenMaterial = new THREE.MeshPhongMaterial({ 
+      color: 0x22c55e,
       shininess: 100,
-      emissive: 0x440000,
+      emissive: 0x064e3b,
       emissiveIntensity: 0.3
     });
 
-    const greenMaterial = new THREE.MeshPhongMaterial({ 
-      color: 0x10b981,
+    const yellowMaterial = new THREE.MeshPhongMaterial({ 
+      color: 0xf59e0b,
       shininess: 100,
-      emissive: 0x004422
+      emissive: 0x92400e
     });
 
     // Main body (cylinder)
@@ -89,19 +89,19 @@ const ThreeJsRobot: React.FC<ThreeJsRobotProps> = ({ onRobotClick }) => {
     head.castShadow = true;
     robotGroup.add(head);
 
-    // Enhanced blue panels
+    // Enhanced cosmic panels
     const panelGeometry = new THREE.BoxGeometry(0.35, 0.9, 0.08);
-    const leftPanel = new THREE.Mesh(panelGeometry, blueMaterial);
+    const leftPanel = new THREE.Mesh(panelGeometry, cosmicMaterial);
     leftPanel.position.set(-0.55, 0.8, 0.85);
     robotGroup.add(leftPanel);
 
-    const rightPanel = new THREE.Mesh(panelGeometry, blueMaterial);
+    const rightPanel = new THREE.Mesh(panelGeometry, cosmicMaterial);
     rightPanel.position.set(0.55, 0.8, 0.85);
     robotGroup.add(rightPanel);
 
     // Multiple eyes/sensors
     const eyeGeometry = new THREE.SphereGeometry(0.12, 12, 12);
-    const mainEye = new THREE.Mesh(eyeGeometry, redMaterial);
+    const mainEye = new THREE.Mesh(eyeGeometry, yellowMaterial);
     mainEye.position.set(0, 1.95, 0.6);
     robotGroup.add(mainEye);
 
@@ -109,7 +109,7 @@ const ThreeJsRobot: React.FC<ThreeJsRobotProps> = ({ onRobotClick }) => {
     leftEye.position.set(-0.2, 1.85, 0.58);
     robotGroup.add(leftEye);
 
-    const rightEye = new THREE.Mesh(new THREE.SphereGeometry(0.08, 8, 8), blueMaterial);
+    const rightEye = new THREE.Mesh(new THREE.SphereGeometry(0.08, 8, 8), cosmicMaterial);
     rightEye.position.set(0.2, 1.85, 0.58);
     robotGroup.add(rightEye);
 
@@ -138,7 +138,7 @@ const ThreeJsRobot: React.FC<ThreeJsRobotProps> = ({ onRobotClick }) => {
     // Enhanced details
     const detailGeometry = new THREE.BoxGeometry(0.25, 0.12, 0.06);
     for (let i = 0; i < 4; i++) {
-      const detail = new THREE.Mesh(detailGeometry, i % 2 === 0 ? blueMaterial : greenMaterial);
+      const detail = new THREE.Mesh(detailGeometry, i % 2 === 0 ? cosmicMaterial : greenMaterial);
       detail.position.set(0, 0.2 + i * 0.25, 0.85);
       robotGroup.add(detail);
     }
@@ -150,7 +150,7 @@ const ThreeJsRobot: React.FC<ThreeJsRobotProps> = ({ onRobotClick }) => {
     robotGroup.add(antenna);
 
     const antennaTop = new THREE.SphereGeometry(0.05, 8, 8);
-    const antennaTopMesh = new THREE.Mesh(antennaTop, redMaterial);
+    const antennaTopMesh = new THREE.Mesh(antennaTop, yellowMaterial);
     antennaTopMesh.position.set(0.3, 2.45, 0);
     robotGroup.add(antennaTopMesh);
 
@@ -205,8 +205,8 @@ const ThreeJsRobot: React.FC<ThreeJsRobotProps> = ({ onRobotClick }) => {
 
         // Light animations
         blueLight.intensity = 0.8 + Math.sin(time * 2) * 0.3;
-        redLight.intensity = 0.6 + Math.sin(time * 2.5 + 1) * 0.2;
-        greenLight.intensity = 0.4 + Math.sin(time * 3 + 2) * 0.2;
+        greenLight.intensity = 0.6 + Math.sin(time * 2.5 + 1) * 0.2;
+        yellowLight.intensity = 0.4 + Math.sin(time * 3 + 2) * 0.2;
       }
 
       renderer.render(scene, camera);
@@ -248,7 +248,7 @@ const ThreeJsRobot: React.FC<ThreeJsRobotProps> = ({ onRobotClick }) => {
           robotGroup.children.forEach((child, index) => {
             if (child instanceof THREE.Mesh && child.material instanceof THREE.MeshPhongMaterial) {
               const originalEmissive = child.material.emissive.clone();
-              const colors = [0x4338ca, 0xdc2626, 0x10b981];
+              const colors = [0x8b5cf6, 0x22c55e, 0xf59e0b];
               child.material.emissive.setHex(colors[index % colors.length]);
               child.material.emissiveIntensity = 0.8;
               
@@ -280,11 +280,11 @@ const ThreeJsRobot: React.FC<ThreeJsRobotProps> = ({ onRobotClick }) => {
   return (
     <div 
       ref={mountRef} 
-      className="fixed bottom-6 right-6 z-40 rounded-2xl overflow-hidden droid-glow droid-container"
+      className="fixed bottom-6 right-6 z-40 rounded-2xl overflow-hidden glass-morphism border border-white/20"
       style={{ 
-        background: 'radial-gradient(circle, rgba(67, 56, 202, 0.2) 0%, rgba(220, 38, 38, 0.15) 50%, transparent 80%)',
+        background: 'radial-gradient(circle, rgba(139, 92, 246, 0.2) 0%, rgba(34, 197, 94, 0.15) 50%, transparent 80%)',
         padding: '15px',
-        border: '2px solid rgba(67, 56, 202, 0.4)'
+        boxShadow: '0 0 30px rgba(139, 92, 246, 0.4), 0 0 60px rgba(139, 92, 246, 0.2)'
       }}
     />
   );

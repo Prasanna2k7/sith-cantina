@@ -48,31 +48,31 @@ const StaffAuth: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-dark-space-gradient flex items-center justify-center p-4">
+    <div className="min-h-screen cosmic-gradient flex items-center justify-center p-4">
       <div className="max-w-md w-full">
         {/* Header */}
         <div className="text-center mb-8">
-          <Link to="/" className="inline-flex items-center text-gray-400 hover:text-sith-300 mb-4 transition-colors hover-lift">
+          <Link to="/" className="inline-flex items-center text-gray-400 hover:text-yellow-300 mb-4 transition-colors hover-lift">
             <ArrowLeft className="w-4 h-4 mr-2" />
             Back to Home
           </Link>
           <div className="flex items-center justify-center mb-4">
-            <div className="w-12 h-12 bg-sith-600 rounded-xl flex items-center justify-center mr-3 sith-glow">
+            <div className="w-12 h-12 glass-morphism rounded-xl flex items-center justify-center mr-3" style={{ boxShadow: '0 0 20px rgba(245, 158, 11, 0.4)' }}>
               <ChefHat className="w-6 h-6 text-white" />
             </div>
-            <span className="text-2xl font-bold text-white galactic-font">Staff Portal</span>
+            <span className="text-2xl font-bold text-white">Staff Portal</span>
           </div>
           <p className="text-gray-300">
-            {isLogin ? 'Welcome back, Master Chef! Sign in to your account' : 'Join the Empire - Create your staff account'}
+            {isLogin ? 'Welcome back, Master Chef! Sign in to your account' : 'Join the Team - Create your staff account'}
           </p>
         </div>
 
         {/* Form */}
-        <div className="dark-holographic rounded-2xl p-8">
+        <div className="glass-morphism-strong rounded-2xl p-8">
           <form onSubmit={handleSubmit} className="space-y-6">
             {error && (
-              <div className="bg-sith-900/30 border border-sith-500/50 rounded-lg p-3 sith-glow">
-                <p className="text-sm text-sith-300">{error}</p>
+              <div className="toast-error rounded-lg p-3">
+                <p className="text-sm">{error}</p>
               </div>
             )}
 
@@ -88,7 +88,7 @@ const StaffAuth: React.FC = () => {
                     required
                     value={formData.fullName}
                     onChange={(e) => setFormData(prev => ({ ...prev, fullName: e.target.value }))}
-                    className="w-full pl-10 pr-4 py-3 dark-input rounded-lg focus:ring-2 focus:ring-sith-500 focus:border-transparent text-white placeholder-gray-400"
+                    className="w-full pl-10 pr-4 py-3 glass-input rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-transparent text-white placeholder-gray-400"
                     placeholder="Enter your full name"
                   />
                 </div>
@@ -106,7 +106,7 @@ const StaffAuth: React.FC = () => {
                   required
                   value={formData.email}
                   onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
-                  className="w-full pl-10 pr-4 py-3 dark-input rounded-lg focus:ring-2 focus:ring-sith-500 focus:border-transparent text-white placeholder-gray-400"
+                  className="w-full pl-10 pr-4 py-3 glass-input rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-transparent text-white placeholder-gray-400"
                   placeholder="Enter your email"
                 />
               </div>
@@ -124,7 +124,7 @@ const StaffAuth: React.FC = () => {
                     required
                     value={formData.mobileNumber}
                     onChange={(e) => setFormData(prev => ({ ...prev, mobileNumber: e.target.value }))}
-                    className="w-full pl-10 pr-4 py-3 dark-input rounded-lg focus:ring-2 focus:ring-sith-500 focus:border-transparent text-white placeholder-gray-400"
+                    className="w-full pl-10 pr-4 py-3 glass-input rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-transparent text-white placeholder-gray-400"
                     placeholder="Enter your mobile number"
                   />
                 </div>
@@ -142,7 +142,7 @@ const StaffAuth: React.FC = () => {
                   required
                   value={formData.password}
                   onChange={(e) => setFormData(prev => ({ ...prev, password: e.target.value }))}
-                  className="w-full pl-10 pr-4 py-3 dark-input rounded-lg focus:ring-2 focus:ring-sith-500 focus:border-transparent text-white placeholder-gray-400"
+                  className="w-full pl-10 pr-4 py-3 glass-input rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-transparent text-white placeholder-gray-400"
                   placeholder="Enter your password"
                 />
               </div>
@@ -160,7 +160,7 @@ const StaffAuth: React.FC = () => {
                     required
                     value={formData.confirmPassword}
                     onChange={(e) => setFormData(prev => ({ ...prev, confirmPassword: e.target.value }))}
-                    className="w-full pl-10 pr-4 py-3 dark-input rounded-lg focus:ring-2 focus:ring-sith-500 focus:border-transparent text-white placeholder-gray-400"
+                    className="w-full pl-10 pr-4 py-3 glass-input rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-transparent text-white placeholder-gray-400"
                     placeholder="Confirm your password"
                   />
                 </div>
@@ -170,19 +170,20 @@ const StaffAuth: React.FC = () => {
             <button
               type="submit"
               disabled={loading}
-              className="w-full sith-button text-white py-3 px-4 rounded-lg font-medium disabled:opacity-50 flex items-center justify-center space-x-2"
+              className="w-full ios-button text-white py-3 px-4 rounded-lg font-medium disabled:opacity-50 flex items-center justify-center space-x-2"
+              style={{ boxShadow: '0 0 20px rgba(245, 158, 11, 0.4)' }}
             >
               <Crown className="w-5 h-5" />
-              <span>{loading ? 'Please wait...' : isLogin ? 'Sign In' : 'Join the Empire'}</span>
+              <span>{loading ? 'Please wait...' : isLogin ? 'Sign In' : 'Join the Team'}</span>
             </button>
           </form>
 
           <div className="mt-6 text-center">
             <button
               onClick={() => setIsLogin(!isLogin)}
-              className="text-sith-400 hover:text-sith-300 font-medium transition-colors"
+              className="text-yellow-400 hover:text-yellow-300 font-medium transition-colors"
             >
-              {isLogin ? "Don't have an account? Join the Dark Side" : "Already have an account? Sign in"}
+              {isLogin ? "Don't have an account? Join the Team" : "Already have an account? Sign in"}
             </button>
           </div>
         </div>

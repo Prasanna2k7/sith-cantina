@@ -2,7 +2,6 @@ import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import Loading from './components/Common/Loading';
-import ThreeJsCursor from './components/Common/ThreeJsCursor';
 import Landing from './pages/Landing';
 import StudentAuth from './pages/Auth/StudentAuth';
 import StaffAuth from './pages/Auth/StaffAuth';
@@ -35,31 +34,28 @@ const AppRoutes: React.FC = () => {
   }
 
   return (
-    <>
-      <ThreeJsCursor />
-      <Routes>
-        <Route path="/" element={user ? <Navigate to={`/${user.role}/dashboard`} replace /> : <Landing />} />
-        <Route path="/auth/student" element={!user ? <StudentAuth /> : <Navigate to="/student/dashboard" replace />} />
-        <Route path="/auth/staff" element={!user ? <StaffAuth /> : <Navigate to="/staff/dashboard" replace />} />
-        <Route
-          path="/student/dashboard"
-          element={
-            <ProtectedRoute allowedRole="student">
-              <StudentDashboard />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/staff/dashboard"
-          element={
-            <ProtectedRoute allowedRole="staff">
-              <StaffDashboard />
-            </ProtectedRoute>
-          }
-        />
-        <Route path="*" element={<Navigate to="/" replace />} />
-      </Routes>
-    </>
+    <Routes>
+      <Route path="/" element={user ? <Navigate to={`/${user.role}/dashboard`} replace /> : <Landing />} />
+      <Route path="/auth/student" element={!user ? <StudentAuth /> : <Navigate to="/student/dashboard" replace />} />
+      <Route path="/auth/staff" element={!user ? <StaffAuth /> : <Navigate to="/staff/dashboard" replace />} />
+      <Route
+        path="/student/dashboard"
+        element={
+          <ProtectedRoute allowedRole="student">
+            <StudentDashboard />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/staff/dashboard"
+        element={
+          <ProtectedRoute allowedRole="staff">
+            <StaffDashboard />
+          </ProtectedRoute>
+        }
+      />
+      <Route path="*" element={<Navigate to="/" replace />} />
+    </Routes>
   );
 };
 
@@ -67,7 +63,7 @@ function App() {
   return (
     <AuthProvider>
       <Router>
-        <div className="min-h-screen bg-dark-950 text-white">
+        <div className="min-h-screen cosmic-gradient text-white">
           <AppRoutes />
         </div>
       </Router>

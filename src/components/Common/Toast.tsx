@@ -21,13 +21,13 @@ const Toast: React.FC<ToastProps> = ({ message, type, onClose, duration = 3000 }
     <div className="fixed top-4 right-4 z-50 animate-in slide-in-from-top-2 duration-300">
       <div className={`flex items-center space-x-3 px-4 py-3 rounded-lg shadow-lg max-w-sm border ${
         type === 'success' 
-          ? 'bg-rebel-950/90 border-rebel-500/50 text-rebel-300 backdrop-blur-sm' 
-          : 'bg-sith-950/90 border-sith-500/50 text-sith-300 backdrop-blur-sm'
+          ? 'toast-success' 
+          : 'toast-error'
       }`}>
         {type === 'success' ? (
-          <CheckCircle className="w-5 h-5 text-rebel-400" />
+          <CheckCircle className="w-5 h-5 text-green-400" />
         ) : (
-          <AlertCircle className="w-5 h-5 text-sith-400" />
+          <AlertCircle className="w-5 h-5 text-red-400" />
         )}
         <span className="text-sm font-medium flex-1">{message}</span>
         <button
