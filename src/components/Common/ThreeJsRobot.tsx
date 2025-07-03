@@ -15,25 +15,25 @@ const ThreeJsRobot: React.FC<ThreeJsRobotProps> = ({ onRobotClick }) => {
 
     // Scene setup
     const scene = new THREE.Scene();
-    const camera = new THREE.PerspectiveCamera(75, 220 / 220, 0.1, 1000);
+    const camera = new THREE.PerspectiveCamera(75, 240 / 240, 0.1, 1000);
     const renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
     
-    renderer.setSize(220, 220);
+    renderer.setSize(240, 240);
     renderer.setClearColor(0x000000, 0);
     renderer.shadowMap.enabled = true;
     renderer.shadowMap.type = THREE.PCFSoftShadowMap;
     mountRef.current.appendChild(renderer.domElement);
 
-    // Enhanced lighting
+    // Enhanced lighting with Star Wars theme
     const ambientLight = new THREE.AmbientLight(0x404040, 0.4);
     scene.add(ambientLight);
 
-    const directionalLight = new THREE.DirectionalLight(0x4f46e5, 1.2);
+    const directionalLight = new THREE.DirectionalLight(0x4338ca, 1.2);
     directionalLight.position.set(5, 5, 5);
     directionalLight.castShadow = true;
     scene.add(directionalLight);
 
-    const blueLight = new THREE.PointLight(0x4f46e5, 0.8, 15);
+    const blueLight = new THREE.PointLight(0x4338ca, 0.8, 15);
     blueLight.position.set(-3, 3, 3);
     scene.add(blueLight);
 
@@ -49,7 +49,7 @@ const ThreeJsRobot: React.FC<ThreeJsRobotProps> = ({ onRobotClick }) => {
     const robotGroup = new THREE.Group();
     robotRef.current = robotGroup;
 
-    // Enhanced materials
+    // Enhanced materials with Star Wars theme
     const bodyMaterial = new THREE.MeshPhongMaterial({ 
       color: 0xf0f0f0,
       shininess: 120,
@@ -57,7 +57,7 @@ const ThreeJsRobot: React.FC<ThreeJsRobotProps> = ({ onRobotClick }) => {
     });
     
     const blueMaterial = new THREE.MeshPhongMaterial({ 
-      color: 0x4f46e5,
+      color: 0x4338ca,
       shininess: 100,
       emissive: 0x111144
     });
@@ -248,7 +248,7 @@ const ThreeJsRobot: React.FC<ThreeJsRobotProps> = ({ onRobotClick }) => {
           robotGroup.children.forEach((child, index) => {
             if (child instanceof THREE.Mesh && child.material instanceof THREE.MeshPhongMaterial) {
               const originalEmissive = child.material.emissive.clone();
-              const colors = [0x4f46e5, 0xdc2626, 0x10b981];
+              const colors = [0x4338ca, 0xdc2626, 0x10b981];
               child.material.emissive.setHex(colors[index % colors.length]);
               child.material.emissiveIntensity = 0.8;
               
@@ -280,11 +280,11 @@ const ThreeJsRobot: React.FC<ThreeJsRobotProps> = ({ onRobotClick }) => {
   return (
     <div 
       ref={mountRef} 
-      className="fixed bottom-6 right-6 z-40 rounded-2xl overflow-hidden easter-egg-glow"
+      className="fixed bottom-6 right-6 z-40 rounded-2xl overflow-hidden droid-glow droid-container"
       style={{ 
-        background: 'radial-gradient(circle, rgba(79, 70, 229, 0.15) 0%, rgba(220, 38, 38, 0.1) 50%, transparent 80%)',
+        background: 'radial-gradient(circle, rgba(67, 56, 202, 0.2) 0%, rgba(220, 38, 38, 0.15) 50%, transparent 80%)',
         padding: '15px',
-        border: '1px solid rgba(79, 70, 229, 0.3)'
+        border: '2px solid rgba(67, 56, 202, 0.4)'
       }}
     />
   );

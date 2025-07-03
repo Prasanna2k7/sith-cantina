@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Clock, Search, Filter, Plus, Minus, Star, ShoppingCart, X, Package, CheckCircle, AlertCircle } from 'lucide-react';
+import { Clock, Search, Filter, Plus, Minus, Star, ShoppingCart, X, Package, CheckCircle, AlertCircle, Zap, Shield } from 'lucide-react';
 import Header from '../../components/Layout/Header';
 import { MenuItem, CartItem, Order } from '../../types';
 import { supabase } from '../../lib/supabase';
@@ -117,7 +117,7 @@ const StudentDashboard: React.FC = () => {
   };
 
   const updateCartQuantity = async (cartItemId: string, quantity: number) => {
-    if (updatingCart === cartItemId) return; // Prevent double-clicks
+    if (updatingCart === cartItemId) return;
     
     setUpdatingCart(cartItemId);
     try {
@@ -155,21 +155,19 @@ const StudentDashboard: React.FC = () => {
 
       const totalAmount = cartItems.reduce((sum, item) => sum + (item.menu_item.price * item.quantity), 0);
 
-      // Create order
       const { data: order, error: orderError } = await supabase
         .from('orders')
         .insert({
           user_id: user.id,
           total_amount: totalAmount,
           status: 'pending',
-          payment_status: 'completed' // For now, assuming payment is completed
+          payment_status: 'completed'
         })
         .select()
         .single();
 
       if (orderError) throw orderError;
 
-      // Create order items
       const orderItems = cartItems.map(item => ({
         order_id: order.id,
         menu_item_id: item.menu_item_id,
@@ -183,7 +181,6 @@ const StudentDashboard: React.FC = () => {
 
       if (orderItemsError) throw orderItemsError;
 
-      // Update menu item quantities
       for (const item of cartItems) {
         const { error: updateError } = await supabase
           .from('menu_items')
@@ -195,7 +192,6 @@ const StudentDashboard: React.FC = () => {
         if (updateError) throw updateError;
       }
 
-      // Clear cart
       const { error: clearCartError } = await supabase
         .from('cart_items')
         .delete()
@@ -203,16 +199,15 @@ const StudentDashboard: React.FC = () => {
 
       if (clearCartError) throw clearCartError;
 
-      // Refresh data
       await fetchCartItems();
       await fetchMenuItems();
 
       setIsCartOpen(false);
-      alert('Order placed successfully! You will be notified when it\'s ready.');
+      alert('Order placed successfully! May the Force be with your meal preparation!');
 
     } catch (error) {
       console.error('Error during checkout:', error);
-      alert('Failed to place order. Please try again.');
+      alert('Failed to place order. The dark side has interfered. Please try again.');
     } finally {
       setCheckoutLoading(false);
     }
@@ -220,12 +215,12 @@ const StudentDashboard: React.FC = () => {
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'pending': return 'bg-yellow-100 text-yellow-800';
-      case 'processing': return 'bg-blue-100 text-blue-800';
-      case 'ready': return 'bg-green-100 text-green-800';
-      case 'completed': return 'bg-gray-100 text-gray-800';
-      case 'cancelled': return 'bg-red-100 text-red-800';
-      default: return 'bg-gray-100 text-gray-800';
+      case 'pending': return 'bg-yellow-100 text-yellow-800 border-yellow-300';
+      case 'processing': return 'bg-empire-100 text-empire-800 border-empire-300';
+      case 'ready': return 'bg-rebel-100 text-rebel-800 border-rebel-300';
+      case 'completed': return 'bg-gray-100 text-gray-800 border-gray-300';
+      case 'cancelled': return 'bg-sith-100 text-sith-800 border-sith-300';
+      default: return 'bg-gray-100 text-gray-800 border-gray-300';
     }
   };
 
@@ -253,16 +248,23 @@ const StudentDashboard: React.FC = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-500"></div>
+      <div className="min-h-screen bg-dark-space-gradient flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-16 h-16 border-4 border-empire-600 border-t-transparent rounded-full animate-spin mx-auto mb-6 jedi-glow"></div>
+          <div className="flex items-center justify-center space-x-3">
+            <Zap className="w-6 h-6 text-empire-500" />
+            <span className="text-xl font-medium text-gray-200 galactic-font">Loading Galactic Menu...</span>
+          </div>
+          <p className="text-gray-400 text-sm mt-2">Preparing your cosmic dining experience</p>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-dark-space-gradient">
       <Header
-        title={activeTab === 'menu' ? 'Menu' : 'Your Orders'}
+        title={activeTab === 'menu' ? 'Galactic Menu' : 'Your Orders'}
         showCart={activeTab === 'menu'}
         cartCount={cartCount}
         onCartClick={() => setIsCartOpen(true)}
@@ -274,20 +276,20 @@ const StudentDashboard: React.FC = () => {
           <nav className="flex space-x-8">
             <button
               onClick={() => setActiveTab('menu')}
-              className={`py-2 px-1 border-b-2 font-medium text-sm ${
+              className={`py-2 px-1 border-b-2 font-medium text-sm transition-colors ${
                 activeTab === 'menu'
-                  ? 'border-orange-500 text-orange-600'
-                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                  ? 'border-empire-500 text-empire-400'
+                  : 'border-transparent text-gray-500 hover:text-gray-300 hover:border-gray-400'
               }`}
             >
-              Menu
+              Galactic Menu
             </button>
             <button
               onClick={() => setActiveTab('orders')}
-              className={`py-2 px-1 border-b-2 font-medium text-sm ${
+              className={`py-2 px-1 border-b-2 font-medium text-sm transition-colors ${
                 activeTab === 'orders'
-                  ? 'border-orange-500 text-orange-600'
-                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                  ? 'border-empire-500 text-empire-400'
+                  : 'border-transparent text-gray-500 hover:text-gray-300 hover:border-gray-400'
               }`}
             >
               Your Orders
@@ -304,10 +306,10 @@ const StudentDashboard: React.FC = () => {
                 <Search className="absolute left-3 top-3 h-5 w-5 text-gray-400" />
                 <input
                   type="text"
-                  placeholder="Search for food items..."
+                  placeholder="Search for galactic delicacies..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                  className="w-full pl-10 pr-4 py-3 dark-input rounded-lg focus:ring-2 focus:ring-empire-500 focus:border-transparent"
                 />
               </div>
               <div className="relative">
@@ -315,10 +317,10 @@ const StudentDashboard: React.FC = () => {
                 <select
                   value={selectedCategory}
                   onChange={(e) => setSelectedCategory(e.target.value)}
-                  className="pl-10 pr-8 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent appearance-none bg-white"
+                  className="pl-10 pr-8 py-3 dark-input rounded-lg focus:ring-2 focus:ring-empire-500 focus:border-transparent appearance-none"
                 >
                   {categories.map(category => (
-                    <option key={category} value={category}>
+                    <option key={category} value={category} className="bg-dark-950 text-white">
                       {category === 'all' ? 'All Categories' : category.charAt(0).toUpperCase() + category.slice(1)}
                     </option>
                   ))}
@@ -329,34 +331,34 @@ const StudentDashboard: React.FC = () => {
             {/* Menu Items */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {filteredItems.map((item) => (
-                <div key={item.id} className="bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition-shadow duration-300">
+                <div key={item.id} className="dark-food-card rounded-xl overflow-hidden hover-lift transition-all duration-300">
                   <div className="relative">
                     <img
                       src={item.image_url}
                       alt={item.name}
                       className="w-full h-48 object-cover"
                     />
-                    <div className="absolute top-2 right-2 bg-white px-2 py-1 rounded-lg flex items-center">
+                    <div className="absolute top-2 right-2 bg-dark-950/80 backdrop-blur-sm px-2 py-1 rounded-lg flex items-center border border-empire-500/30">
                       <Star className="w-4 h-4 text-yellow-400 fill-current" />
-                      <span className="ml-1 text-sm font-medium">{item.rating}</span>
+                      <span className="ml-1 text-sm font-medium text-white">{item.rating}</span>
                     </div>
                   </div>
                   <div className="p-6">
                     <div className="flex justify-between items-start mb-2">
-                      <h3 className="text-xl font-semibold text-gray-900">{item.name}</h3>
-                      <span className="text-2xl font-bold text-orange-500">₹{item.price}</span>
+                      <h3 className="text-xl font-semibold text-white">{item.name}</h3>
+                      <span className="text-2xl font-bold empire-text">₹{item.price}</span>
                     </div>
-                    <p className="text-gray-600 mb-4">{item.description}</p>
+                    <p className="text-gray-400 mb-4">{item.description}</p>
                     <div className="flex items-center justify-between text-sm text-gray-500 mb-4">
                       <span>Serves: {item.serves}</span>
                       <span>Available: {item.quantity_available}</span>
                     </div>
                     <div className="flex items-center justify-between">
-                      <span className="text-sm font-medium text-gray-700">{item.canteen_name}</span>
+                      <span className="text-sm font-medium text-empire-400">{item.canteen_name}</span>
                       <button
                         onClick={() => addToCart(item)}
                         disabled={item.quantity_available <= 0}
-                        className="flex items-center space-x-2 bg-orange-500 text-white px-4 py-2 rounded-lg hover:bg-orange-600 transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                        className="flex items-center space-x-2 empire-button text-white px-4 py-2 rounded-lg transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
                       >
                         <Plus className="w-4 h-4" />
                         <span>Add to Cart</span>
@@ -369,11 +371,11 @@ const StudentDashboard: React.FC = () => {
 
             {filteredItems.length === 0 && (
               <div className="text-center py-12">
-                <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <div className="w-16 h-16 bg-empire-950/50 rounded-full flex items-center justify-center mx-auto mb-4 border border-empire-500/30">
                   <Search className="w-8 h-8 text-gray-400" />
                 </div>
-                <h3 className="text-lg font-medium text-gray-900 mb-2">No items found</h3>
-                <p className="text-gray-600">Try adjusting your search or filter criteria</p>
+                <h3 className="text-lg font-medium text-white mb-2">No galactic delicacies found</h3>
+                <p className="text-gray-400">Try adjusting your search or filter criteria</p>
               </div>
             )}
           </>
@@ -383,48 +385,48 @@ const StudentDashboard: React.FC = () => {
         {activeTab === 'orders' && (
           <div className="space-y-6">
             <div className="flex justify-between items-center">
-              <h2 className="text-2xl font-bold text-gray-900">Your Orders</h2>
-              <div className="bg-white px-4 py-2 rounded-lg shadow-sm">
-                <span className="text-sm text-gray-600">Total Orders: </span>
-                <span className="font-semibold text-gray-900">{orders.length}</span>
+              <h2 className="text-2xl font-bold text-white galactic-font">Your Orders</h2>
+              <div className="dark-glass px-4 py-2 rounded-lg border border-empire-500/30">
+                <span className="text-sm text-gray-400">Total Orders: </span>
+                <span className="font-semibold text-white">{orders.length}</span>
               </div>
             </div>
 
             {ordersLoading ? (
               <div className="flex items-center justify-center py-12">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-500"></div>
+                <div className="w-8 h-8 border-4 border-empire-600 border-t-transparent rounded-full animate-spin jedi-glow"></div>
               </div>
             ) : orders.length === 0 ? (
               <div className="text-center py-12">
-                <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <div className="w-16 h-16 bg-empire-950/50 rounded-full flex items-center justify-center mx-auto mb-4 border border-empire-500/30">
                   <Package className="w-8 h-8 text-gray-400" />
                 </div>
-                <h3 className="text-lg font-medium text-gray-900 mb-2">No orders yet</h3>
-                <p className="text-gray-600">Your orders will appear here after you place them</p>
+                <h3 className="text-lg font-medium text-white mb-2">No orders yet</h3>
+                <p className="text-gray-400 mb-6">Your galactic feast orders will appear here</p>
                 <button
                   onClick={() => setActiveTab('menu')}
-                  className="mt-4 bg-orange-500 text-white px-6 py-2 rounded-lg hover:bg-orange-600 transition-colors duration-200"
+                  className="empire-button text-white px-6 py-2 rounded-lg transition-all duration-200"
                 >
-                  Browse Menu
+                  Browse Galactic Menu
                 </button>
               </div>
             ) : (
               <div className="grid gap-6">
                 {orders.map((order) => (
-                  <div key={order.id} className="bg-white rounded-xl shadow-lg p-6">
+                  <div key={order.id} className="dark-holographic rounded-xl p-6">
                     <div className="flex justify-between items-start mb-4">
                       <div>
-                        <h3 className="text-lg font-semibold text-gray-900">
+                        <h3 className="text-lg font-semibold text-white galactic-font">
                           Order #{order.id.slice(0, 8)}
                         </h3>
-                        <p className="text-sm text-gray-600">
+                        <p className="text-sm text-gray-400">
                           {new Date(order.created_at).toLocaleDateString()} at{' '}
                           {new Date(order.created_at).toLocaleTimeString()}
                         </p>
                       </div>
                       <div className="text-right">
-                        <p className="text-2xl font-bold text-gray-900">₹{order.total_amount}</p>
-                        <div className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColor(order.status)}`}>
+                        <p className="text-2xl font-bold empire-text">₹{order.total_amount}</p>
+                        <div className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${getStatusColor(order.status)}`}>
                           {getStatusIcon(order.status)}
                           <span className="ml-1 capitalize">{order.status}</span>
                         </div>
@@ -432,22 +434,22 @@ const StudentDashboard: React.FC = () => {
                     </div>
 
                     <div className="mb-4">
-                      <h4 className="font-medium text-gray-900 mb-3">Items:</h4>
+                      <h4 className="font-medium text-white mb-3">Items:</h4>
                       <div className="space-y-3">
                         {order.order_items.map((item) => (
-                          <div key={item.id} className="flex items-center space-x-4 p-3 bg-gray-50 rounded-lg">
+                          <div key={item.id} className="flex items-center space-x-4 p-3 dark-glass rounded-lg border border-empire-500/20">
                             <img
                               src={item.menu_item.image_url}
                               alt={item.menu_item.name}
                               className="w-12 h-12 object-cover rounded-lg"
                             />
                             <div className="flex-1">
-                              <h5 className="font-medium text-gray-900">{item.menu_item.name}</h5>
-                              <p className="text-sm text-gray-600">{item.menu_item.canteen_name}</p>
+                              <h5 className="font-medium text-white">{item.menu_item.name}</h5>
+                              <p className="text-sm text-empire-400">{item.menu_item.canteen_name}</p>
                             </div>
                             <div className="text-right">
-                              <p className="font-medium text-gray-900">x{item.quantity}</p>
-                              <p className="text-sm text-gray-600">₹{item.price * item.quantity}</p>
+                              <p className="font-medium text-white">x{item.quantity}</p>
+                              <p className="text-sm text-gray-400">₹{item.price * item.quantity}</p>
                             </div>
                           </div>
                         ))}
@@ -455,19 +457,19 @@ const StudentDashboard: React.FC = () => {
                     </div>
 
                     {order.status === 'ready' && (
-                      <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+                      <div className="bg-rebel-950/30 border border-rebel-500/50 rounded-lg p-4 force-glow">
                         <div className="flex items-center">
-                          <CheckCircle className="w-5 h-5 text-green-500 mr-2" />
-                          <span className="text-green-800 font-medium">Your order is ready for pickup!</span>
+                          <CheckCircle className="w-5 h-5 text-rebel-400 mr-2" />
+                          <span className="text-rebel-300 font-medium">Your galactic feast is ready for pickup!</span>
                         </div>
                       </div>
                     )}
 
                     {order.status === 'processing' && (
-                      <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                      <div className="bg-empire-950/30 border border-empire-500/50 rounded-lg p-4 jedi-glow">
                         <div className="flex items-center">
-                          <Package className="w-5 h-5 text-blue-500 mr-2" />
-                          <span className="text-blue-800 font-medium">Your order is being prepared</span>
+                          <Package className="w-5 h-5 text-empire-400 mr-2" />
+                          <span className="text-empire-300 font-medium">Your order is being prepared by our galactic chefs</span>
                         </div>
                       </div>
                     )}
@@ -483,33 +485,33 @@ const StudentDashboard: React.FC = () => {
       {isCartOpen && (
         <div className="fixed inset-0 z-50">
           <div 
-            className="absolute inset-0 bg-black bg-opacity-50" 
+            className="absolute inset-0 bg-black/80 backdrop-blur-sm" 
             onClick={() => setIsCartOpen(false)} 
           />
-          <div className="absolute right-0 top-0 h-full w-full max-w-md bg-white shadow-xl flex flex-col">
+          <div className="absolute right-0 top-0 h-full w-full max-w-md dark-holographic flex flex-col border-l border-empire-500/30">
             {/* Cart Header */}
-            <div className="flex items-center justify-between p-6 border-b bg-white">
-              <h2 className="text-xl font-semibold text-gray-900">Your Cart</h2>
+            <div className="flex items-center justify-between p-6 border-b border-empire-500/30">
+              <h2 className="text-xl font-semibold text-white galactic-font">Your Cart</h2>
               <button
                 onClick={() => setIsCartOpen(false)}
-                className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                className="p-2 hover:bg-white/10 rounded-lg transition-colors"
               >
-                <X className="w-6 h-6 text-gray-600" />
+                <X className="w-6 h-6 text-gray-400" />
               </button>
             </div>
 
             {/* Cart Content */}
-            <div className="flex-1 overflow-y-auto p-6 bg-gray-50">
+            <div className="flex-1 overflow-y-auto p-6 custom-scrollbar">
               {cartItems.length === 0 ? (
                 <div className="text-center py-12">
                   <ShoppingCart className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-                  <h3 className="text-lg font-medium text-gray-900 mb-2">Your cart is empty</h3>
-                  <p className="text-gray-600">Add some delicious items to get started!</p>
+                  <h3 className="text-lg font-medium text-white mb-2">Your cart is empty</h3>
+                  <p className="text-gray-400">Add some galactic delicacies to get started!</p>
                 </div>
               ) : (
                 <div className="space-y-4">
                   {cartItems.map((item) => (
-                    <div key={item.id} className="bg-white rounded-lg p-4 shadow-sm border border-gray-200">
+                    <div key={item.id} className="dark-glass rounded-lg p-4 border border-empire-500/20">
                       <div className="flex items-center space-x-4">
                         <img
                           src={item.menu_item.image_url}
@@ -517,27 +519,27 @@ const StudentDashboard: React.FC = () => {
                           className="w-16 h-16 object-cover rounded-lg"
                         />
                         <div className="flex-1">
-                          <h4 className="font-medium text-gray-900">{item.menu_item.name}</h4>
-                          <p className="text-sm text-gray-600">₹{item.menu_item.price}</p>
+                          <h4 className="font-medium text-white">{item.menu_item.name}</h4>
+                          <p className="text-sm text-empire-400">₹{item.menu_item.price}</p>
                           <p className="text-xs text-gray-500">{item.menu_item.canteen_name}</p>
                         </div>
                         <div className="flex items-center space-x-2">
                           <button
                             onClick={() => updateCartQuantity(item.id, item.quantity - 1)}
                             disabled={updatingCart === item.id}
-                            className="w-8 h-8 flex items-center justify-center rounded-full bg-orange-100 hover:bg-orange-200 transition-colors disabled:opacity-50"
+                            className="w-8 h-8 flex items-center justify-center rounded-full bg-sith-600/20 hover:bg-sith-600/40 transition-colors disabled:opacity-50 border border-sith-500/30"
                           >
-                            <Minus className="w-4 h-4 text-orange-600" />
+                            <Minus className="w-4 h-4 text-sith-400" />
                           </button>
-                          <span className="w-8 text-center font-medium text-gray-900">
+                          <span className="w-8 text-center font-medium text-white">
                             {updatingCart === item.id ? '...' : item.quantity}
                           </span>
                           <button
                             onClick={() => updateCartQuantity(item.id, item.quantity + 1)}
                             disabled={updatingCart === item.id}
-                            className="w-8 h-8 flex items-center justify-center rounded-full bg-orange-100 hover:bg-orange-200 transition-colors disabled:opacity-50"
+                            className="w-8 h-8 flex items-center justify-center rounded-full bg-empire-600/20 hover:bg-empire-600/40 transition-colors disabled:opacity-50 border border-empire-500/30"
                           >
-                            <Plus className="w-4 h-4 text-orange-600" />
+                            <Plus className="w-4 h-4 text-empire-400" />
                           </button>
                         </div>
                       </div>
@@ -549,17 +551,18 @@ const StudentDashboard: React.FC = () => {
 
             {/* Cart Footer */}
             {cartItems.length > 0 && (
-              <div className="border-t p-6 bg-white">
+              <div className="border-t border-empire-500/30 p-6">
                 <div className="flex justify-between items-center mb-4">
-                  <span className="text-lg font-semibold text-gray-900">Total:</span>
-                  <span className="text-2xl font-bold text-orange-500">₹{cartTotal.toFixed(2)}</span>
+                  <span className="text-lg font-semibold text-white">Total:</span>
+                  <span className="text-2xl font-bold empire-text">₹{cartTotal.toFixed(2)}</span>
                 </div>
                 <button
                   onClick={handleCheckout}
                   disabled={checkoutLoading}
-                  className="w-full bg-orange-500 text-white py-3 px-4 rounded-lg hover:bg-orange-600 transition-colors duration-200 font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="w-full empire-button text-white py-3 px-4 rounded-lg font-medium disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2"
                 >
-                  {checkoutLoading ? 'Processing...' : 'Proceed to Checkout'}
+                  <Shield className="w-5 h-5" />
+                  <span>{checkoutLoading ? 'Processing...' : 'Proceed to Checkout'}</span>
                 </button>
               </div>
             )}

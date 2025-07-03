@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Plus, Edit, Trash2, Clock, CheckCircle, AlertCircle, Package, X, DollarSign, Users, Package2 } from 'lucide-react';
+import { Plus, Edit, Trash2, Clock, CheckCircle, AlertCircle, Package, X, DollarSign, Users, Package2, Crown, Shield } from 'lucide-react';
 import Header from '../../components/Layout/Header';
 import Toast from '../../components/Common/Toast';
 import { MenuItem, Order } from '../../types';
@@ -25,7 +25,6 @@ const StaffDashboard: React.FC = () => {
   const [deletingMenuItem, setDeletingMenuItem] = useState<string | null>(null);
   const [toasts, setToasts] = useState<ToastMessage[]>([]);
 
-  // Form state for editing menu items
   const [editForm, setEditForm] = useState({
     name: '',
     description: '',
@@ -71,7 +70,7 @@ const StaffDashboard: React.FC = () => {
         image_url: '',
         category: 'main_course',
         serves: '1',
-        canteen_name: user?.full_name || '', // Pre-fill with staff's canteen name
+        canteen_name: user?.full_name || '',
         quantity_available: '0'
       });
     }
@@ -85,43 +84,27 @@ const StaffDashboard: React.FC = () => {
         return;
       }
 
-      console.log('Fetching orders for canteen:', user.full_name);
-
-      // Step 1: Get all orders first
       const { data: allOrders, error: ordersError } = await supabase
         .from('orders')
         .select('*')
         .order('created_at', { ascending: false });
 
-      if (ordersError) {
-        console.error('Error fetching orders:', ordersError);
-        throw ordersError;
-      }
-
-      console.log('All orders:', allOrders);
+      if (ordersError) throw ordersError;
 
       if (!allOrders || allOrders.length === 0) {
-        console.log('No orders found');
         setOrders([]);
         setLoading(false);
         return;
       }
 
-      // Step 2: Get all users separately
       const userIds = [...new Set(allOrders.map(order => order.user_id))];
       const { data: users, error: usersError } = await supabase
         .from('users')
         .select('*')
         .in('id', userIds);
 
-      if (usersError) {
-        console.error('Error fetching users:', usersError);
-        throw usersError;
-      }
+      if (usersError) throw usersError;
 
-      console.log('Users:', users);
-
-      // Step 3: Get order items with menu items for all orders
       const orderIds = allOrders.map(order => order.id);
       const { data: orderItems, error: orderItemsError } = await supabase
         .from('order_items')
@@ -131,44 +114,27 @@ const StaffDashboard: React.FC = () => {
         `)
         .in('order_id', orderIds);
 
-      if (orderItemsError) {
-        console.error('Error fetching order items:', orderItemsError);
-        throw orderItemsError;
-      }
+      if (orderItemsError) throw orderItemsError;
 
-      console.log('Order items:', orderItems);
-
-      // Step 4: Create a user lookup map
       const userMap = new Map();
       users?.forEach(user => {
         userMap.set(user.id, user);
       });
 
-      // Step 5: Filter orders that have items from this staff's canteen
       const relevantOrders = allOrders.filter(order => {
         const orderItemsForOrder = orderItems?.filter(item => item.order_id === order.id) || [];
-        const hasCanteenItems = orderItemsForOrder.some(item => 
+        return orderItemsForOrder.some(item => 
           item.menu_item?.canteen_name === user.full_name
         );
-        console.log(`Order ${order.id} has canteen items:`, hasCanteenItems);
-        return hasCanteenItems;
       });
 
-      console.log('Relevant orders:', relevantOrders);
-
-      // Step 6: Build final orders with user data and filtered items
       const finalOrders = relevantOrders.map(order => {
-        // Get user data from our map
         const userData = userMap.get(order.user_id);
-        console.log(`User data for order ${order.id}:`, userData);
-
-        // Filter order items to only include items from this canteen
         const canteenOrderItems = orderItems?.filter(item => 
           item.order_id === order.id && 
           item.menu_item?.canteen_name === user.full_name
         ) || [];
 
-        // Calculate total for this canteen's items only
         const canteenTotal = canteenOrderItems.reduce((sum, item) => 
           sum + (item.price * item.quantity), 0
         );
@@ -181,7 +147,6 @@ const StaffDashboard: React.FC = () => {
         };
       });
 
-      console.log('Final orders with user data:', finalOrders);
       setOrders(finalOrders);
 
     } catch (error) {
@@ -194,12 +159,8 @@ const StaffDashboard: React.FC = () => {
 
   const fetchMenuItems = async () => {
     try {
-      if (!user?.full_name) {
-        console.error('Staff user full_name not available');
-        return;
-      }
+      if (!user?.full_name) return;
 
-      // Only fetch menu items for this staff member's canteen
       const { data, error } = await supabase
         .from('menu_items')
         .select('*')
@@ -214,7 +175,6 @@ const StaffDashboard: React.FC = () => {
   };
 
   const updateOrderStatus = async (orderId: string, status: string) => {
-    // Create a unique key for this specific order update
     const updateKey = `${orderId}-${status}`;
     
     if (updatingOrders.has(updateKey)) return;
@@ -230,7 +190,7 @@ const StaffDashboard: React.FC = () => {
       if (error) throw error;
       
       if (status === 'ready') {
-        showToast('Order marked as ready! Customer will be notified.', 'success');
+        showToast('Order marked as ready! The Force has guided your cooking!', 'success');
       } else {
         showToast(`Order status updated to ${status}`, 'success');
       }
@@ -238,7 +198,7 @@ const StaffDashboard: React.FC = () => {
       await fetchOrders();
     } catch (error) {
       console.error('Error updating order status:', error);
-      showToast('Failed to update order status. Please try again.', 'error');
+      showToast('Failed to update order status. The dark side interfered.', 'error');
     } finally {
       setUpdatingOrders(prev => {
         const newSet = new Set(prev);
@@ -251,7 +211,6 @@ const StaffDashboard: React.FC = () => {
   const handleSaveMenuItem = async () => {
     if (savingMenuItem) return;
 
-    // Basic validation
     if (!editForm.name.trim()) {
       showToast('Please enter an item name', 'error');
       return;
@@ -293,7 +252,7 @@ const StaffDashboard: React.FC = () => {
         image_url: imageUrl,
         category: editForm.category || 'main_course',
         serves: serves,
-        canteen_name: user?.full_name || '', // Always use staff's canteen name
+        canteen_name: user?.full_name || '',
         quantity_available: quantityAvailable
       };
 
@@ -358,12 +317,12 @@ const StaffDashboard: React.FC = () => {
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'pending': return 'bg-yellow-100 text-yellow-800';
-      case 'processing': return 'bg-blue-100 text-blue-800';
-      case 'ready': return 'bg-green-100 text-green-800';
-      case 'completed': return 'bg-gray-100 text-gray-800';
-      case 'cancelled': return 'bg-red-100 text-red-800';
-      default: return 'bg-gray-100 text-gray-800';
+      case 'pending': return 'bg-yellow-100 text-yellow-800 border-yellow-300';
+      case 'processing': return 'bg-empire-100 text-empire-800 border-empire-300';
+      case 'ready': return 'bg-rebel-100 text-rebel-800 border-rebel-300';
+      case 'completed': return 'bg-gray-100 text-gray-800 border-gray-300';
+      case 'cancelled': return 'bg-sith-100 text-sith-800 border-sith-300';
+      default: return 'bg-gray-100 text-gray-800 border-gray-300';
     }
   };
 
@@ -383,10 +342,7 @@ const StaffDashboard: React.FC = () => {
     return updatingOrders.has(updateKey);
   };
 
-  // Helper function to format student info
   const formatStudentInfo = (orderUser: any) => {
-    console.log('Formatting student info for user:', orderUser);
-    
     if (!orderUser) {
       return 'Unknown Student (No User Data)';
     }
@@ -403,15 +359,22 @@ const StaffDashboard: React.FC = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-500"></div>
+      <div className="min-h-screen bg-dark-space-gradient flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-16 h-16 border-4 border-sith-600 border-t-transparent rounded-full animate-spin mx-auto mb-6 sith-glow"></div>
+          <div className="flex items-center justify-center space-x-3">
+            <Crown className="w-6 h-6 text-sith-500" />
+            <span className="text-xl font-medium text-gray-200 galactic-font">Loading Imperial Dashboard...</span>
+          </div>
+          <p className="text-gray-400 text-sm mt-2">Preparing your command center</p>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <Header title={`${user?.full_name || 'Staff'} Dashboard`} />
+    <div className="min-h-screen bg-dark-space-gradient">
+      <Header title={`${user?.full_name || 'Staff'} Command Center`} />
 
       {/* Toast Notifications */}
       {toasts.map((toast) => (
@@ -429,20 +392,20 @@ const StaffDashboard: React.FC = () => {
           <nav className="flex space-x-8">
             <button
               onClick={() => setActiveTab('orders')}
-              className={`py-2 px-1 border-b-2 font-medium text-sm ${
+              className={`py-2 px-1 border-b-2 font-medium text-sm transition-colors ${
                 activeTab === 'orders'
-                  ? 'border-orange-500 text-orange-600'
-                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                  ? 'border-sith-500 text-sith-400'
+                  : 'border-transparent text-gray-500 hover:text-gray-300 hover:border-gray-400'
               }`}
             >
               Orders Management
             </button>
             <button
               onClick={() => setActiveTab('menu')}
-              className={`py-2 px-1 border-b-2 font-medium text-sm ${
+              className={`py-2 px-1 border-b-2 font-medium text-sm transition-colors ${
                 activeTab === 'menu'
-                  ? 'border-orange-500 text-orange-600'
-                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                  ? 'border-sith-500 text-sith-400'
+                  : 'border-transparent text-gray-500 hover:text-gray-300 hover:border-gray-400'
               }`}
             >
               Menu Management
@@ -454,15 +417,15 @@ const StaffDashboard: React.FC = () => {
         {activeTab === 'orders' && (
           <div className="space-y-8">
             <div className="flex justify-between items-center">
-              <h2 className="text-2xl font-bold text-gray-900">Orders for {user?.full_name}</h2>
+              <h2 className="text-2xl font-bold text-white galactic-font">Orders for {user?.full_name}</h2>
               <div className="flex space-x-4">
-                <div className="bg-white px-4 py-2 rounded-lg shadow-sm">
-                  <span className="text-sm text-gray-600">Total Orders: </span>
-                  <span className="font-semibold text-gray-900">{orders.length}</span>
+                <div className="dark-glass px-4 py-2 rounded-lg border border-sith-500/30">
+                  <span className="text-sm text-gray-400">Total Orders: </span>
+                  <span className="font-semibold text-white">{orders.length}</span>
                 </div>
-                <div className="bg-white px-4 py-2 rounded-lg shadow-sm">
-                  <span className="text-sm text-gray-600">Pending: </span>
-                  <span className="font-semibold text-yellow-600">
+                <div className="dark-glass px-4 py-2 rounded-lg border border-sith-500/30">
+                  <span className="text-sm text-gray-400">Pending: </span>
+                  <span className="font-semibold text-yellow-400">
                     {orders.filter(o => o.status === 'pending').length}
                   </span>
                 </div>
@@ -471,32 +434,32 @@ const StaffDashboard: React.FC = () => {
 
             {orders.length === 0 ? (
               <div className="text-center py-12">
-                <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <div className="w-16 h-16 bg-sith-950/50 rounded-full flex items-center justify-center mx-auto mb-4 border border-sith-500/30">
                   <Clock className="w-8 h-8 text-gray-400" />
                 </div>
-                <h3 className="text-lg font-medium text-gray-900 mb-2">No orders yet</h3>
-                <p className="text-gray-600">Orders for {user?.full_name} will appear here when students place them</p>
+                <h3 className="text-lg font-medium text-white mb-2">No orders yet</h3>
+                <p className="text-gray-400">Orders for {user?.full_name} will appear here when students place them</p>
               </div>
             ) : (
               <div className="grid gap-6">
                 {orders.map((order) => (
-                  <div key={order.id} className="bg-white rounded-xl shadow-lg p-6">
+                  <div key={order.id} className="dark-holographic rounded-xl p-6">
                     <div className="flex justify-between items-start mb-4">
                       <div>
-                        <h4 className="text-lg font-semibold text-gray-900">
+                        <h4 className="text-lg font-semibold text-white galactic-font">
                           Order #{order.id.slice(0, 8)}
                         </h4>
-                        <p className="text-sm text-gray-600 font-medium">
+                        <p className="text-sm text-gray-400 font-medium">
                           {formatStudentInfo(order.user)}
                         </p>
-                        <p className="text-sm text-gray-600">
+                        <p className="text-sm text-gray-500">
                           {new Date(order.created_at).toLocaleDateString()} at{' '}
                           {new Date(order.created_at).toLocaleTimeString()}
                         </p>
                       </div>
                       <div className="text-right">
-                        <p className="text-xl font-bold text-gray-900">₹{order.total_amount}</p>
-                        <div className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColor(order.status)}`}>
+                        <p className="text-xl font-bold sith-text">₹{order.total_amount}</p>
+                        <div className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${getStatusColor(order.status)}`}>
                           {getStatusIcon(order.status)}
                           <span className="ml-1 capitalize">{order.status}</span>
                         </div>
@@ -504,14 +467,14 @@ const StaffDashboard: React.FC = () => {
                     </div>
 
                     <div className="mb-4">
-                      <h5 className="font-medium text-gray-900 mb-2">Items from {user?.full_name}:</h5>
+                      <h5 className="font-medium text-white mb-2">Items from {user?.full_name}:</h5>
                       <div className="space-y-2">
                         {order.order_items.map((item) => (
-                          <div key={item.id} className="flex justify-between items-center bg-gray-50 p-2 rounded">
-                            <span className="text-gray-700">
+                          <div key={item.id} className="flex justify-between items-center dark-glass p-2 rounded border border-empire-500/20">
+                            <span className="text-gray-300">
                               {item.menu_item.name} x {item.quantity}
                             </span>
-                            <span className="font-medium text-gray-900">₹{item.price * item.quantity}</span>
+                            <span className="font-medium text-white">₹{item.price * item.quantity}</span>
                           </div>
                         ))}
                       </div>
@@ -521,21 +484,21 @@ const StaffDashboard: React.FC = () => {
                       <button
                         onClick={() => updateOrderStatus(order.id, 'processing')}
                         disabled={order.status !== 'pending' || isOrderUpdating(order.id, 'processing')}
-                        className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200 text-sm"
+                        className="px-4 py-2 empire-button text-white rounded-lg disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 text-sm"
                       >
                         {isOrderUpdating(order.id, 'processing') ? 'Updating...' : 'Start Processing'}
                       </button>
                       <button
                         onClick={() => updateOrderStatus(order.id, 'ready')}
                         disabled={order.status !== 'processing' || isOrderUpdating(order.id, 'ready')}
-                        className="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200 text-sm"
+                        className="px-4 py-2 rebel-button text-white rounded-lg disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 text-sm"
                       >
                         {isOrderUpdating(order.id, 'ready') ? 'Updating...' : 'Mark Ready'}
                       </button>
                       <button
                         onClick={() => updateOrderStatus(order.id, 'completed')}
                         disabled={order.status !== 'ready' || isOrderUpdating(order.id, 'completed')}
-                        className="px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200 text-sm"
+                        className="px-4 py-2 bg-gray-600 hover:bg-gray-500 text-white rounded-lg disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 text-sm"
                       >
                         {isOrderUpdating(order.id, 'completed') ? 'Updating...' : 'Complete'}
                       </button>
@@ -551,13 +514,13 @@ const StaffDashboard: React.FC = () => {
         {activeTab === 'menu' && (
           <div className="space-y-6">
             <div className="flex justify-between items-center">
-              <h2 className="text-2xl font-bold text-gray-900">Menu Items for {user?.full_name}</h2>
+              <h2 className="text-2xl font-bold text-white galactic-font">Menu Items for {user?.full_name}</h2>
               <button
                 onClick={() => {
                   setEditingItem(null);
                   setIsEditModalOpen(true);
                 }}
-                className="flex items-center space-x-2 bg-orange-500 text-white px-4 py-2 rounded-lg hover:bg-orange-600 transition-colors duration-200"
+                className="flex items-center space-x-2 sith-button text-white px-4 py-2 rounded-lg transition-all duration-200"
               >
                 <Plus className="w-5 h-5" />
                 <span>Add New Item</span>
@@ -566,7 +529,7 @@ const StaffDashboard: React.FC = () => {
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {menuItems.map((item) => (
-                <div key={item.id} className="bg-white rounded-xl shadow-lg overflow-hidden">
+                <div key={item.id} className="dark-food-card rounded-xl overflow-hidden">
                   <img
                     src={item.image_url}
                     alt={item.name}
@@ -574,15 +537,15 @@ const StaffDashboard: React.FC = () => {
                   />
                   <div className="p-6">
                     <div className="flex justify-between items-start mb-2">
-                      <h3 className="text-xl font-semibold text-gray-900">{item.name}</h3>
-                      <span className="text-xl font-bold text-orange-500">₹{item.price}</span>
+                      <h3 className="text-xl font-semibold text-white">{item.name}</h3>
+                      <span className="text-xl font-bold sith-text">₹{item.price}</span>
                     </div>
-                    <p className="text-gray-600 mb-4">{item.description}</p>
+                    <p className="text-gray-400 mb-4">{item.description}</p>
                     <div className="flex items-center justify-between text-sm text-gray-500 mb-2">
                       <span>Available: {item.quantity_available}</span>
                       <span>Serves: {item.serves}</span>
                     </div>
-                    <div className="text-sm text-gray-600 mb-4">
+                    <div className="text-sm text-gray-400 mb-4">
                       <span className="font-medium">Canteen:</span> {item.canteen_name}
                     </div>
                     <div className="flex space-x-2">
@@ -591,7 +554,7 @@ const StaffDashboard: React.FC = () => {
                           setEditingItem(item);
                           setIsEditModalOpen(true);
                         }}
-                        className="flex-1 flex items-center justify-center space-x-2 bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition-colors duration-200"
+                        className="flex-1 flex items-center justify-center space-x-2 empire-button text-white px-4 py-2 rounded-lg transition-all duration-200"
                       >
                         <Edit className="w-4 h-4" />
                         <span>Edit</span>
@@ -599,7 +562,7 @@ const StaffDashboard: React.FC = () => {
                       <button
                         onClick={() => handleDeleteMenuItem(item.id)}
                         disabled={deletingMenuItem === item.id}
-                        className="flex-1 flex items-center justify-center space-x-2 bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600 transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                        className="flex-1 flex items-center justify-center space-x-2 sith-button text-white px-4 py-2 rounded-lg transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
                       >
                         <Trash2 className="w-4 h-4" />
                         <span>{deletingMenuItem === item.id ? 'Deleting...' : 'Delete'}</span>
@@ -612,11 +575,11 @@ const StaffDashboard: React.FC = () => {
 
             {menuItems.length === 0 && (
               <div className="text-center py-12">
-                <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <div className="w-16 h-16 bg-sith-950/50 rounded-full flex items-center justify-center mx-auto mb-4 border border-sith-500/30">
                   <Plus className="w-8 h-8 text-gray-400" />
                 </div>
-                <h3 className="text-lg font-medium text-gray-900 mb-2">No menu items yet</h3>
-                <p className="text-gray-600">Add your first menu item for {user?.full_name} to get started</p>
+                <h3 className="text-lg font-medium text-white mb-2">No menu items yet</h3>
+                <p className="text-gray-400">Add your first menu item for {user?.full_name} to get started</p>
               </div>
             )}
           </div>
@@ -625,19 +588,19 @@ const StaffDashboard: React.FC = () => {
 
       {/* Edit/Add Menu Item Modal */}
       {isEditModalOpen && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="dark-holographic rounded-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto custom-scrollbar">
             {/* Modal Header */}
-            <div className="flex items-center justify-between p-6 border-b border-gray-200">
-              <h3 className="text-xl font-semibold text-gray-900">
+            <div className="flex items-center justify-between p-6 border-b border-sith-500/30">
+              <h3 className="text-xl font-semibold text-white galactic-font">
                 {editingItem ? 'Edit Menu Item' : 'Add New Menu Item'}
               </h3>
               <button
                 onClick={() => setIsEditModalOpen(false)}
                 disabled={savingMenuItem}
-                className="p-2 hover:bg-gray-100 rounded-lg transition-colors disabled:opacity-50"
+                className="p-2 hover:bg-white/10 rounded-lg transition-colors disabled:opacity-50"
               >
-                <X className="w-5 h-5 text-gray-500" />
+                <X className="w-5 h-5 text-gray-400" />
               </button>
             </div>
 
@@ -645,14 +608,14 @@ const StaffDashboard: React.FC = () => {
             <div className="p-6 space-y-6">
               {/* Name */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-gray-300 mb-2">
                   Item Name *
                 </label>
                 <input
                   type="text"
                   value={editForm.name}
                   onChange={(e) => setEditForm(prev => ({ ...prev, name: e.target.value }))}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                  className="w-full px-3 py-2 dark-input rounded-lg focus:ring-2 focus:ring-sith-500 focus:border-transparent"
                   placeholder="Enter item name"
                   disabled={savingMenuItem}
                 />
@@ -660,14 +623,14 @@ const StaffDashboard: React.FC = () => {
 
               {/* Description */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-gray-300 mb-2">
                   Description *
                 </label>
                 <textarea
                   value={editForm.description}
                   onChange={(e) => setEditForm(prev => ({ ...prev, description: e.target.value }))}
                   rows={3}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                  className="w-full px-3 py-2 dark-input rounded-lg focus:ring-2 focus:ring-sith-500 focus:border-transparent"
                   placeholder="Enter item description"
                   disabled={savingMenuItem}
                 />
@@ -676,7 +639,7 @@ const StaffDashboard: React.FC = () => {
               {/* Price, Serves, Quantity Available */}
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium text-gray-300 mb-2">
                     <DollarSign className="w-4 h-4 inline mr-1" />
                     Price (₹) *
                   </label>
@@ -686,14 +649,14 @@ const StaffDashboard: React.FC = () => {
                     min="0"
                     value={editForm.price}
                     onChange={(e) => setEditForm(prev => ({ ...prev, price: e.target.value }))}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                    className="w-full px-3 py-2 dark-input rounded-lg focus:ring-2 focus:ring-sith-500 focus:border-transparent"
                     placeholder="0.00"
                     disabled={savingMenuItem}
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium text-gray-300 mb-2">
                     <Users className="w-4 h-4 inline mr-1" />
                     Serves *
                   </label>
@@ -702,14 +665,14 @@ const StaffDashboard: React.FC = () => {
                     min="1"
                     value={editForm.serves}
                     onChange={(e) => setEditForm(prev => ({ ...prev, serves: e.target.value }))}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                    className="w-full px-3 py-2 dark-input rounded-lg focus:ring-2 focus:ring-sith-500 focus:border-transparent"
                     placeholder="1"
                     disabled={savingMenuItem}
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium text-gray-300 mb-2">
                     <Package2 className="w-4 h-4 inline mr-1" />
                     Available Qty *
                   </label>
@@ -718,41 +681,41 @@ const StaffDashboard: React.FC = () => {
                     min="0"
                     value={editForm.quantity_available}
                     onChange={(e) => setEditForm(prev => ({ ...prev, quantity_available: e.target.value }))}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                    className="w-full px-3 py-2 dark-input rounded-lg focus:ring-2 focus:ring-sith-500 focus:border-transparent"
                     placeholder="0"
                     disabled={savingMenuItem}
                   />
                 </div>
               </div>
 
-              {/* Category and Canteen (Read-only) */}
+              {/* Category and Canteen */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium text-gray-300 mb-2">
                     Category
                   </label>
                   <select
                     value={editForm.category}
                     onChange={(e) => setEditForm(prev => ({ ...prev, category: e.target.value }))}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                    className="w-full px-3 py-2 dark-input rounded-lg focus:ring-2 focus:ring-sith-500 focus:border-transparent"
                     disabled={savingMenuItem}
                   >
-                    <option value="main_course">Main Course</option>
-                    <option value="snacks">Snacks</option>
-                    <option value="beverages">Beverages</option>
-                    <option value="south_indian">South Indian</option>
-                    <option value="desserts">Desserts</option>
+                    <option value="main_course" className="bg-dark-950 text-white">Main Course</option>
+                    <option value="snacks" className="bg-dark-950 text-white">Snacks</option>
+                    <option value="beverages" className="bg-dark-950 text-white">Beverages</option>
+                    <option value="south_indian" className="bg-dark-950 text-white">South Indian</option>
+                    <option value="desserts" className="bg-dark-950 text-white">Desserts</option>
                   </select>
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium text-gray-300 mb-2">
                     Canteen Name
                   </label>
                   <input
                     type="text"
                     value={user?.full_name || ''}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-100 text-gray-600"
+                    className="w-full px-3 py-2 dark-input rounded-lg bg-gray-800/50 text-gray-400"
                     disabled
                     readOnly
                   />
@@ -764,14 +727,14 @@ const StaffDashboard: React.FC = () => {
 
               {/* Image URL */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-gray-300 mb-2">
                   Image URL (Optional)
                 </label>
                 <input
                   type="text"
                   value={editForm.image_url}
                   onChange={(e) => setEditForm(prev => ({ ...prev, image_url: e.target.value }))}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                  className="w-full px-3 py-2 dark-input rounded-lg focus:ring-2 focus:ring-sith-500 focus:border-transparent"
                   placeholder="https://example.com/image.jpg"
                   disabled={savingMenuItem}
                 />
@@ -782,20 +745,21 @@ const StaffDashboard: React.FC = () => {
             </div>
 
             {/* Modal Footer */}
-            <div className="flex space-x-4 p-6 border-t border-gray-200">
+            <div className="flex space-x-4 p-6 border-t border-sith-500/30">
               <button
                 onClick={() => setIsEditModalOpen(false)}
                 disabled={savingMenuItem}
-                className="flex-1 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                className="flex-1 px-4 py-2 border border-gray-600 rounded-lg hover:bg-gray-700/50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-white"
               >
                 Cancel
               </button>
               <button
                 onClick={handleSaveMenuItem}
                 disabled={savingMenuItem}
-                className="flex-1 px-4 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                className="flex-1 px-4 py-2 sith-button text-white rounded-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2"
               >
-                {savingMenuItem ? 'Saving...' : editingItem ? 'Update Item' : 'Create Item'}
+                <Shield className="w-4 h-4" />
+                <span>{savingMenuItem ? 'Saving...' : editingItem ? 'Update Item' : 'Create Item'}</span>
               </button>
             </div>
           </div>
